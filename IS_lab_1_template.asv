@@ -1,0 +1,372 @@
+clc
+clear all
+
+%% Paveikslu nuskaitymas
+
+% Obuoliai
+A1 = imread('apple_04.jpg');
+A2 = imread('apple_05.jpg');
+A3 = imread('apple_06.jpg');
+A4 = imread('apple_07.jpg');
+A5 = imread('apple_11.jpg');
+A6 = imread('apple_12.jpg');
+A7 = imread('apple_13.jpg');
+A8 = imread('apple_17.jpg');
+A9 = imread('apple_19.jpg');
+
+% Kriauses
+P1 = imread('pear_01.jpg');
+P2 = imread('pear_02.jpg');
+P3 = imread('pear_03.jpg');
+P4 = imread('pear_09.jpg');
+
+
+%% 2. Pozymiu skaiciavimas
+
+% x1 - spalva
+% x2 - apvalumas
+
+% Obuoliai
+hsv_value_A1 = spalva_color(A1);
+metric_A1 = apvalumas_roundness(A1);
+
+hsv_value_A2 = spalva_color(A2);
+metric_A2 = apvalumas_roundness(A2);
+
+hsv_value_A3 = spalva_color(A3);
+metric_A3 = apvalumas_roundness(A3);
+
+hsv_value_A4 = spalva_color(A4);
+metric_A4 = apvalumas_roundness(A4);
+
+hsv_value_A5 = spalva_color(A5);
+metric_A5 = apvalumas_roundness(A5);
+
+hsv_value_A6 = spalva_color(A6);
+metric_A6 = apvalumas_roundness(A6);
+
+hsv_value_A7 = spalva_color(A7);
+metric_A7 = apvalumas_roundness(A7);
+
+hsv_value_A8 = spalva_color(A8);
+metric_A8 = apvalumas_roundness(A8);
+
+hsv_value_A9 = spalva_color(A9);
+metric_A9 = apvalumas_roundness(A9);
+
+% Kriauses
+hsv_value_P1 = spalva_color(P1);
+metric_P1 = apvalumas_roundness(P1);
+
+hsv_value_P2 = spalva_color(P2);
+metric_P2 = apvalumas_roundness(P2);
+
+hsv_value_P3 = spalva_color(P3);
+metric_P3 = apvalumas_roundness(P3);
+
+hsv_value_P4 = spalva_color(P4);
+metric_P4 = apvalumas_roundness(P4);
+
+
+%% 3. Mokymo duomenys perceptronui
+
+% Naudojami 3 obuoliai ir 2 kriauses
+
+x1 = [hsv_value_A1 hsv_value_A2 hsv_value_A3 ...
+      hsv_value_P1 hsv_value_P2];
+
+x2 = [metric_A1 metric_A2 metric_A3 ...
+      metric_P1 metric_P2];
+
+% Norimi atsakymai
+% 1 = obuolys
+% -1 = kriause
+
+T = [1 1 1 -1 -1];
+
+
+%% 4. Perceptrono pradiniai parametrai
+
+% Atsitiktiniai svoriai
+w1 = randn(1);
+w2 = randn(1);
+
+% Bias - poslinkis
+b = randn(1);
+
+% Mokymosi greitis
+eta = 0.1;
+
+
+%% 5. Pirmas perceptrono patikrinimas
+
+for i = 1:5
+
+    % Skaiciuojama svertine suma
+    v(i) = x1(i)*w1 + x2(i)*w2 + b;
+
+    % Perceptrono atsakymas
+    if v(i) > 0
+        y(i) = 1;
+    else
+        y(i) = -1;
+    end
+
+    % Klaida
+    error(i) = T(i) - y(i);
+
+end
+
+% Bendra klaida
+% abs naudojamas tam, kad +2 ir -2 nepanaikintu vienas kito
+e = sum(abs(error));
+
+
+%% 6. Perceptrono mokymas
+
+% Mokoma tol, kol visu mokymo pavyzdziu klaida lygi 0
+
+while e ~= 0
+
+    for i = 1:5
+
+        % Skaiciuojame dabartini atsakyma
+        v(i) = x1(i)*w1 + x2(i)*w2 + b;
+
+        if v(i) > 0
+            y(i) = 1;
+        else
+            y(i) = -1;
+        end
+
+        % Momentine klaida
+        error(i) = T(i) - y(i);
+
+        % Atnaujiname parametrus
+        w1 = w1 + eta*error(i)*x1(i);
+        w2 = w2 + eta*error(i)*x2(i);
+        b = b + eta*error(i);
+
+    end
+
+
+    % Po atnaujinimo dar karta patikriname visus 5 pavyzdzius
+
+    for i = 1:5
+
+        v(i) = x1(i)*w1 + x2(i)*w2 + b;
+
+        if v(i) > 0
+            y(i) = 1;
+        else
+            y(i) = -1;
+        end
+
+        error(i) = T(i) - y(i);
+
+    end
+
+    % Nauja bendra klaida
+    e = sum(abs(error));
+
+end
+
+
+%% 7. Perceptrono rezultatai
+
+disp('Perceptrono mokymas baigtas')
+
+disp('Bendra mokymo klaida:')
+disp(e)
+
+disp('w1:')
+disp(w1)
+
+disp('w2:')
+disp(w2)
+
+disp('b:')
+disp(b)
+
+
+%% 2 uzd. Perceptrono testavimas
+
+% Testuojami paveikslai, kurie nebuvo naudojami mokymui
+
+test_x1 = [hsv_value_A4 hsv_value_A5 hsv_value_A6 ...
+           hsv_value_A7 hsv_value_A8 hsv_value_A9 ...
+           hsv_value_P3 hsv_value_P4];
+
+test_x2 = [metric_A4 metric_A5 metric_A6 ...
+           metric_A7 metric_A8 metric_A9 ...
+           metric_P3 metric_P4];
+
+% Teisingi atsakymai
+test_T = [1 1 1 1 1 1 -1 -1];
+
+for i = 1:8
+
+    % Naudojami jau ismokyti w1, w2 ir b
+    % Testavimo metu svoriai nebeatnaujinami
+
+    test_v(i) = test_x1(i)*w1 + test_x2(i)*w2 + b;
+
+    if test_v(i) > 0
+        test_y(i) = 1;
+    else
+        test_y(i) = -1;
+    end
+
+    % Testavimo klaida
+    test_error(i) = test_T(i) - test_y(i);
+
+end
+
+% Bendra testavimo klaida
+test_e = sum(abs(test_error));
+
+disp('Perceptrono testavimo rezultatai:')
+disp(test_y)
+
+disp('Bendra perceptrono testavimo klaida:')
+disp(test_e)
+
+
+
+%% 3 uzd Papildoma uzduotis Naive Bayes
+
+% Naive Bayes svoriu w1, w2 ir bias nenaudoja.
+% Jis lygina tikimybes, kuriai klasei objektas labiau priklauso.
+
+fprintf('Naive Bayes klasifikavimas\n')
+
+%Klasiu pradines tikimybes
+% Mokymo duomenyse yra 3 obuoliai ir 2 kriauses
+
+P_apple = 3/5;
+P_pear = 2/5;
+
+
+%Pozymiu vidurkiai
+
+% Obuoliu spalvos vidurkis
+mean_apple_x1 = ...
+    (hsv_value_A1 + hsv_value_A2 + hsv_value_A3) / 3;
+
+% Obuoliu apvalumo vidurkis
+mean_apple_x2 = ...
+    (metric_A1 + metric_A2 + metric_A3) / 3;
+
+% Kriausiu spalvos vidurkis
+mean_pear_x1 = ...
+    (hsv_value_P1 + hsv_value_P2) / 2;
+
+% Kriausiu apvalumo vidurkis
+mean_pear_x2 = ...
+    (metric_P1 + metric_P2) / 2;
+
+
+% Standartiniai nuokrypiai
+% Parodo, kiek reiksmės issisklaido aplink vidurki
+
+std_apple_x1 = sqrt( ...
+    ((hsv_value_A1 - mean_apple_x1)^2 + ...
+     (hsv_value_A2 - mean_apple_x1)^2 + ...
+     (hsv_value_A3 - mean_apple_x1)^2) / 3);
+
+std_apple_x2 = sqrt( ...
+    ((metric_A1 - mean_apple_x2)^2 + ...
+     (metric_A2 - mean_apple_x2)^2 + ...
+     (metric_A3 - mean_apple_x2)^2) / 3);
+
+std_pear_x1 = sqrt( ...
+    ((hsv_value_P1 - mean_pear_x1)^2 + ...
+     (hsv_value_P2 - mean_pear_x1)^2) / 2);
+
+std_pear_x2 = sqrt( ...
+    ((metric_P1 - mean_pear_x2)^2 + ...
+     (metric_P2 - mean_pear_x2)^2) / 2);
+
+
+% Kad nebutu dalybos is nulio
+% Jei standartinis nuokrypis butu 0,
+% formuleje atsirastu dalyba is 0
+
+if std_apple_x1 == 0
+    std_apple_x1 = 0.000001;
+end
+
+if std_apple_x2 == 0
+    std_apple_x2 = 0.000001;
+end
+
+if std_pear_x1 == 0
+    std_pear_x1 = 0.000001;
+end
+
+if std_pear_x2 == 0
+    std_pear_x2 = 0.000001;
+end
+
+
+%% 14. Naive Bayes testavimas
+
+for i = 1:8
+
+    % Tikimybe, kad x1 reikšme priklauso obuoliui
+    p_apple_x1 = ...
+        (1/(sqrt(2*pi)*std_apple_x1)) * ...
+        exp(-((test_x1(i)-mean_apple_x1)^2) / ...
+        (2*std_apple_x1^2));
+
+    % Tikimybe, kad x2 reikšme priklauso obuoliui
+    p_apple_x2 = ...
+        (1/(sqrt(2*pi)*std_apple_x2)) * ...
+        exp(-((test_x2(i)-mean_apple_x2)^2) / ...
+        (2*std_apple_x2^2));
+
+
+    % Tikimybe, kad x1 reikšme priklauso kriausei
+    p_pear_x1 = ...
+        (1/(sqrt(2*pi)*std_pear_x1)) * ...
+        exp(-((test_x1(i)-mean_pear_x1)^2) / ...
+        (2*std_pear_x1^2));
+
+    % Tikimybe, kad x2 reikšme priklauso kriausei
+    p_pear_x2 = ...
+        (1/(sqrt(2*pi)*std_pear_x2)) * ...
+        exp(-((test_x2(i)-mean_pear_x2)^2) / ...
+        (2*std_pear_x2^2));
+
+
+    % Bendra tikimybe obuolio klasei
+    prob_apple = P_apple * p_apple_x1 * p_apple_x2;
+
+    % Bendra tikimybe kriauses klasei
+    prob_pear = P_pear * p_pear_x1 * p_pear_x2;
+
+
+    % Pasirenkame didesne tikimybe
+
+    if prob_apple > prob_pear
+        NB_y(i) = 1;
+    else
+        NB_y(i) = -1;
+    end
+
+
+    % Naive Bayes klaida
+    NB_error(i) = test_T(i) - NB_y(i);
+
+end
+
+
+%% 15. Naive Bayes bendra klaida
+
+NB_e = sum(abs(NB_error));
+
+disp('Naive Bayes rezultatai:')
+disp(NB_y)
+
+disp('Bendra Naive Bayes testavimo klaida:')
+disp(NB_e)
